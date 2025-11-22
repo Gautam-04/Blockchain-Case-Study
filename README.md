@@ -1,4 +1,4 @@
-# Blockchain Case Study - Drug Supply Chain Management System
+# Blockchain Case Study - Anti-Counterfeit Medicine Tracking System
 
 ## 📋 Project Overview
 
