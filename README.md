@@ -198,23 +198,23 @@ forge build
 ```javascript
 async function main() {
   // Deploy ManufacturerRegistry
-  const registrationFee = ethers.utils.parseEther("0.01"); // 0.01 ETH
+  const registrationFee = ethers.parseEther("0.01"); // 0.01 ETH
   const ManufacturerRegistry = await ethers.getContractFactory("ManufacturerRegistry");
   const registry = await ManufacturerRegistry.deploy(registrationFee);
-  await registry.deployed();
-  console.log("ManufacturerRegistry deployed to:", registry.address);
+  await registry.waitForDeployment();
+  console.log("ManufacturerRegistry deployed to:", await registry.getAddress());
 
   // Deploy SupplyChain
   const SupplyChain = await ethers.getContractFactory("SupplyChain");
-  const supplyChain = await SupplyChain.deploy(registry.address);
-  await supplyChain.deployed();
-  console.log("SupplyChain deployed to:", supplyChain.address);
+  const supplyChain = await SupplyChain.deploy(await registry.getAddress());
+  await supplyChain.waitForDeployment();
+  console.log("SupplyChain deployed to:", await supplyChain.getAddress());
 
   // Deploy CustomerPortal
   const CustomerPortal = await ethers.getContractFactory("CustomerPortal");
-  const portal = await CustomerPortal.deploy(supplyChain.address);
-  await portal.deployed();
-  console.log("CustomerPortal deployed to:", portal.address);
+  const portal = await CustomerPortal.deploy(await supplyChain.getAddress());
+  await portal.waitForDeployment();
+  console.log("CustomerPortal deployed to:", await portal.getAddress());
 }
 
 main()
@@ -275,10 +275,11 @@ const registry = await ethers.getContractAt("ManufacturerRegistry", "<REGISTRY_A
 const supplyChain = await ethers.getContractAt("SupplyChain", "<SUPPLY_CHAIN_ADDRESS>");
 
 // Register a manufacturer
-await registry.registerManufacturer("Pharma Corp", { value: ethers.utils.parseEther("0.01") });
+await registry.registerManufacturer("Pharma Corp", { value: ethers.parseEther("0.01") });
 
-// Create a batch
-await supplyChain.createBatch("BATCH001", "Aspirin", Date.now(), Date.now() + 31536000000);
+// Create a batch (timestamps in seconds)
+const currentTime = Math.floor(Date.now() / 1000);
+await supplyChain.createBatch("BATCH001", "Aspirin", currentTime, currentTime + 31536000);
 
 // Get batch information
 const batch = await supplyChain.getBatch("BATCH001");
@@ -331,16 +332,17 @@ describe("Supply Chain System", function() {
 
   it("Should register manufacturer and create batch", async function() {
     await registry.connect(manufacturer).registerManufacturer("Test Pharma", {
-      value: ethers.utils.parseEther("0.01")
+      value: ethers.parseEther("0.01")
     });
     
     expect(await registry.isRegistered(manufacturer.address)).to.be.true;
     
+    const currentTime = Math.floor(Date.now() / 1000);
     await supplyChain.connect(manufacturer).createBatch(
       "BATCH001",
       "Medicine",
-      Date.now(),
-      Date.now() + 31536000000
+      currentTime,
+      currentTime + 31536000
     );
     
     const batch = await supplyChain.getBatch("BATCH001");
