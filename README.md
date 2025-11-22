@@ -321,13 +321,16 @@ describe("Supply Chain System", function() {
     [owner, manufacturer, customer] = await ethers.getSigners();
     
     const ManufacturerRegistry = await ethers.getContractFactory("ManufacturerRegistry");
-    registry = await ManufacturerRegistry.deploy(ethers.utils.parseEther("0.01"));
+    registry = await ManufacturerRegistry.deploy(ethers.parseEther("0.01"));
+    await registry.waitForDeployment();
     
     const SupplyChain = await ethers.getContractFactory("SupplyChain");
-    supplyChain = await SupplyChain.deploy(registry.address);
+    supplyChain = await SupplyChain.deploy(await registry.getAddress());
+    await supplyChain.waitForDeployment();
     
     const CustomerPortal = await ethers.getContractFactory("CustomerPortal");
-    portal = await CustomerPortal.deploy(supplyChain.address);
+    portal = await CustomerPortal.deploy(await supplyChain.getAddress());
+    await portal.waitForDeployment();
   });
 
   it("Should register manufacturer and create batch", async function() {
